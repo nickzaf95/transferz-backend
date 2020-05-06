@@ -47,23 +47,31 @@ class UsersController < ApplicationController
         else
             render json: { message: "Failure!" }
         end
+
     end
 
-    # Check if we can decode the token we've been sent and find a valid user
-    if get_user
-        # If so, send back that user's username and a newly generated token
-        render json: { username: get_user.username, token: generate_token(id: get_user.id)}
-      else
-        # Otherwise, send back an error
-        render json: { error: "You are not authorized" }
-      end
-
-    def sign_up
+    def validate
+        # Check if we can decode the token we've been sent and find a valid user
+        if get_user
+          # If so, send back that user's username and a newly generated token
+          render json: { username: get_user.username, token: generate_token(id: get_user.id)}
+        else
+          # Otherwise, send back an error
+          render json: { error: "You are not authorized" }
+        end
     end
 
-    def create
-        user = User.find_by(username: params[:username])
+    
 
+    def signup
+        user = User.create(
+            username: params[:username],
+            password: params[:password],
+            first_name: params[:first_name],
+            last_name: params[:last_name],
+            email: params[:email],
+            phone_number: params[:phone_number]
+        )
 
         # Euro Account
         Account.create(user: user, amount: 0.00, currency: "eur")
@@ -76,7 +84,12 @@ class UsersController < ApplicationController
 
         # CHF Account
         Account.create(user: user, amount: 0.00, currency: "chf")
+
+        if user
+            render json: { message: "Success!"}
+        else
+            render json: { error: "Please fill out the form as required" }
+        end
     end
 
-    
 end
